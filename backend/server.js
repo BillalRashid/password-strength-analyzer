@@ -31,6 +31,12 @@ const allowedOrigins = [
   'http://localhost:3000'
 ];
 
+const allowedOrigins = [
+  'https://www.passwordstrengthanalyser.com',
+  'https://passwordstrengthanalyser.com',
+  'http://localhost:3000'
+];
+
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
@@ -41,7 +47,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
   origin: function(origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
