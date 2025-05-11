@@ -27,10 +27,11 @@ app.use((req, res, next) => {
 
 // CORS configuration
 app.use(cors({
-  origin: ['https://www.passwordstrengthanalyser.com'],
+  origin: ['https://password-strength-analyzer-frontend.vercel.app', 'https://www.passwordstrengthanalyser.com', 'http://localhost:3000'],
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  exposedHeaders: ['Set-Cookie']
 }));
 
 // Handle preflight requests
@@ -150,6 +151,84 @@ app.get('/', (req, res) => {
     version: '1.0.0',
     timestamp: new Date().toISOString()
   });
+});
+
+// Password analysis endpoint
+app.post('/analyze-password', verifyToken, async (req, res) => {
+  try {
+    const { password } = req.body;
+    
+    if (!password) {
+      return res.status(400).json({ error: 'Password is required' });
+    }
+
+    // Basic password strength criteria
+    const criteria = {
+      length: password.length >= 8,
+      hasUpperCase: /[A-Z]/.test(password),
+      hasLowerCase: /[a-z]/.test(password),
+      hasNumbers: /\d/.test(password),
+      hasSpecialChar: /[!@#$%^&*(),.?":{}|<>]/.test(password),
+    };
+
+    // Calculate score (0-4)
+    let score = Object.values(criteria).filter(Boolean).length - 1;
+    score = Math.max(0, Math.min(4, score)); // Ensure score is between 0-4
+
+    // Generate feedback
+    const feedback = {
+      warning: '',
+      suggestions: []
+    };
+
+    if (!criteria.length) {
+      feedback.warning = 'Password is too short';
+      feedback.suggestions.push('Use at least 8 characters');
+    }
+    if (!criteria.hasUpperCase) {
+      feedback.suggestions.push('Add uppercase letters');
+    }
+    if (!criteria.hasLowerCase) {
+      feedback.suggestions.push('Add lowercase letters');
+    }
+    if (!criteria.hasNumbers) {
+      feedback.suggestions.push('Add numbers');
+    }
+    if (!criteria.hasSpecialChar) {
+      feedback.suggestions.push('Add special characters');
+    }
+
+    // Common patterns to check
+    const commonPatterns = [
+      /^123/, /password/i, /qwerty/i, /abc/i,
+      /admin/i, /letmein/i, /welcome/i
+    ];
+
+    if (commonPatterns.some(pattern => pattern.test(password))) {
+      score = Math.max(0, score - 1);
+      feedback.warning = 'Password contains common patterns';
+      feedback.suggestions.push('Avoid common words and patterns');
+    }
+
+    // Save password history for the user
+    await User.findByIdAndUpdate(req.user._id, {
+      $push: {
+        passwordHistory: {
+          password: password,
+          createdAt: new Date()
+        }
+      }
+    });
+
+    res.json({
+      score,
+      feedback,
+      criteria
+    });
+  } catch (error) {
+    console.error('Password analysis error:', error);
+    res.status(500).json({ error: 'Failed to analyze password' });
+  }
 });
 
 // Health check endpoint

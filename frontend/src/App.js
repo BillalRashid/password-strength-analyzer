@@ -3,6 +3,7 @@ import axios from 'axios';
 import { googleLogout, useGoogleLogin } from '@react-oauth/google';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
+import PasswordAnalyzer from './components/PasswordAnalyzer';
 
 // Get environment variables with debug logging
 const API_URL = process.env.REACT_APP_API_URL || 'https://password-strength-analyzer-backend-production.up.railway.app';
@@ -154,7 +155,7 @@ function App() {
                       Logout
                     </button>
                   </div>
-                  {/* Add your password analysis UI here */}
+                  <PasswordAnalyzer token={token} />
                 </div>
               )}
             </div>
