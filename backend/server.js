@@ -1,7 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const cors = require('cors');
+const cors = require('cors'); // Keep this line only once
 const jwt = require('jsonwebtoken');
 const session = require('express-session');
 const axios = require('axios');
@@ -26,8 +26,6 @@ app.use((req, res, next) => {
 });
 
 // CORS configuration
-const cors = require('cors');
-
 app.use(cors({
   origin: function (origin, callback) {
     const allowedOrigins = [
