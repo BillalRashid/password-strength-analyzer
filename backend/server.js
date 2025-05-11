@@ -27,7 +27,7 @@ app.use((req, res, next) => {
 
 // CORS configuration
 app.use(cors({
-  origin: ['https://www.passwordstrengthanalyser.com', 'http://localhost:3000'],
+  origin: ['https://www.passwordstrengthanalyser.com'],
   credentials: true,
   methods: ['GET', 'POST', 'OPTIONS', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
