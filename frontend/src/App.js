@@ -6,8 +6,13 @@ import './App.css';
 import PasswordAnalyzer from './components/PasswordAnalyzer';
 
 // API URL configuration
-const API_URL = 'https://password-strength-analyzer-backend-production.up.railway.app';
-console.log('Using API URL:', API_URL);
+const API_URL = process.env.REACT_APP_API_URL || 'https://password-strength-analyzer-backend-production.up.railway.app';
+
+console.log('Frontend Environment Check:', {
+  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
+  NODE_ENV: process.env.NODE_ENV,
+  API_URL
+});
 
 function App() {
   // User and authentication state
@@ -101,16 +106,16 @@ function App() {
       if (storedToken) {
         try {
           console.log('Checking stored token...');
-        const response = await axios.get(`${API_URL}/auth/verify`, {
-          headers: { 
-            'Authorization': `Bearer ${storedToken}`,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
-          withCredentials: true
-        });
+          const response = await axios.get(`${API_URL}/auth/verify`, {
+            headers: { 
+              'Authorization': `Bearer ${storedToken}`,
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            withCredentials: true
+          });
 
-        console.log('Verify response:', response);
+          console.log('Verify response:', response);
           
           if (response.data) {
             console.log('Stored token is valid');
