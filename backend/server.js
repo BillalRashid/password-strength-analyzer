@@ -25,14 +25,15 @@ app.use((req, res, next) => {
   next();
 });
 
-const allowedOrigins = [
-  'https://www.passwordstrengthanalyser.com',
-  'https://passwordstrengthanalyser.com',
-  'http://localhost:3000'
-];
+// CORS configuration
+const cors = require('cors');
 
 app.use(cors({
   origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://passwordstrengthanalyser.com',
+      'https://www.passwordstrengthanalyser.com'
+    ];
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -44,7 +45,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin']
 }));
 
-// Handle preflight requests
 app.options('*', cors());
 
 // Basic middleware
