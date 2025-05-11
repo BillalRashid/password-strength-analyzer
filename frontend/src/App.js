@@ -40,6 +40,12 @@ function App() {
         const backendResponse = await axios.post(`${API_URL}/auth/google/token`, {
           access_token: codeResponse.access_token,
           user_info: userInfo.data
+        }, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          withCredentials: true
         });
 
         console.log('Backend response:', backendResponse.data);
@@ -72,13 +78,16 @@ function App() {
       if (storedToken) {
         try {
           console.log('Checking stored token...');
-          const response = await axios.get(`${API_URL}/auth/verify`, {
-            headers: { 
-              Authorization: `Bearer ${storedToken}`,
-              'Content-Type': 'application/json'
-            },
-            withCredentials: true
-          });
+        const response = await axios.get(`${API_URL}/auth/verify`, {
+          headers: { 
+            'Authorization': `Bearer ${storedToken}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          withCredentials: true
+        });
+
+        console.log('Verify response:', response);
           
           if (response.data) {
             console.log('Stored token is valid');
