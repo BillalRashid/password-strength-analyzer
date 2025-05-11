@@ -5,11 +5,11 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import PasswordAnalyzer from './components/PasswordAnalyzer';
 
-// Dynamically load API URL from environment
 const API_URL = process.env.REACT_APP_API_URL?.trim();
 console.log('Frontend Env Check:', {
-  API_URL,
+  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
   NODE_ENV: process.env.NODE_ENV,
+  API_URL
 });
 
 function App() {
@@ -21,23 +21,24 @@ function App() {
   const login = useGoogleLogin({
     onSuccess: async (codeResponse) => {
       try {
-        console.log('Google login success:', codeResponse);
         setIsLoading(true);
+        console.log('Google login success:', codeResponse);
 
+        // Fetch Google user info
         const userInfo = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
-          headers: { Authorization: `Bearer ${codeResponse.access_token}` }
+          headers: {
+            Authorization: `Bearer ${codeResponse.access_token}`
+          }
         });
 
         console.log('Google user info:', userInfo.data);
 
+        // Send to backend
         const backendRes = await axios.post(`${API_URL}/auth/google/token`, {
           access_token: codeResponse.access_token,
           user_info: userInfo.data
         }, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           withCredentials: true
         });
 
@@ -53,7 +54,7 @@ function App() {
         }
 
       } catch (err) {
-        console.error('Login error:', err);
+        console.error('Login error:', err.message || err);
         setAuthError('Login failed. Please try again.');
         setUser(null);
         setToken(null);
@@ -76,7 +77,7 @@ function App() {
       try {
         const res = await axios.get(`${API_URL}/auth/verify`, {
           headers: {
-            'Authorization': `Bearer ${stored}`,
+            Authorization: `Bearer ${stored}`,
             'Content-Type': 'application/json'
           },
           withCredentials: true
@@ -87,7 +88,7 @@ function App() {
         setToken(stored);
         setAuthError(null);
       } catch (err) {
-        console.error('Session invalid:', err);
+        console.error('Token verification failed:', err);
         sessionStorage.removeItem('auth_token');
         setToken(null);
         setUser(null);
