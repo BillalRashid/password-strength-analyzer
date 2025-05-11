@@ -13,23 +13,44 @@ const PasswordAnalyzer = ({ token }) => {
       setIsLoading(true);
       setError(null);
       
-      const API_URL = process.env.REACT_APP_API_URL || 'https://password-strength-analyzer-backend-production.up.railway.app';
+      if (!token) {
+        setError('Please log in again to analyze passwords.');
+        return;
+      }
+
+      const API_URL = 'https://password-strength-analyzer-backend-production.up.railway.app';
       const response = await axios.post(
         `${API_URL}/analyze-password`,
         { password },
         {
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           withCredentials: true
         }
       );
 
-      setResult(response.data);
+      if (response.data) {
+        setResult(response.data);
+        setError(null);
+      }
     } catch (error) {
       console.error('Password analysis failed:', error);
-      setError('Failed to analyze password. Please try again.');
+      if (error.response) {
+        if (error.response.status === 401) {
+          setError('Session expired. Please log in again.');
+          // Trigger re-login
+          window.location.reload();
+        } else {
+          setError(`Analysis failed: ${error.response.data.error || 'Please try again.'}`);
+        }
+      } else if (error.request) {
+        setError('Server not responding. Please try again later.');
+      } else {
+        setError('Failed to analyze password. Please try again.');
+      }
     } finally {
       setIsLoading(false);
     }

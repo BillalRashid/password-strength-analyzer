@@ -46,16 +46,43 @@ function App() {
 
         console.log('Backend response:', backendResponse.data);
 
-        if (backendResponse.data.token) {
+        if (backendResponse.data && backendResponse.data.token) {
+          // Store token and user data
           sessionStorage.setItem('auth_token', backendResponse.data.token);
           setToken(backendResponse.data.token);
           setUser(backendResponse.data.user);
           setAuthError(null);
+
+          // Verify token immediately
+          try {
+            const verifyResponse = await axios.get(`${API_URL}/auth/verify`, {
+              headers: { 
+                'Authorization': `Bearer ${backendResponse.data.token}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              withCredentials: true
+            });
+
+            if (!verifyResponse.data) {
+              throw new Error('Token verification failed');
+            }
+          } catch (verifyError) {
+            console.error('Token verification failed:', verifyError);
+            sessionStorage.removeItem('auth_token');
+            setToken(null);
+            setUser(null);
+            throw new Error('Token verification failed');
+          }
+        } else {
+          throw new Error('Invalid response from server');
         }
       } catch (error) {
         console.error('Login error:', error);
-        setAuthError('Authentication failed. Please try again.');
         sessionStorage.removeItem('auth_token');
+        setToken(null);
+        setUser(null);
+        setAuthError(error.message || 'Authentication failed. Please try again.');
       } finally {
         setIsLoading(false);
       }
