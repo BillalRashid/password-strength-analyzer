@@ -5,13 +5,9 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import PasswordAnalyzer from './components/PasswordAnalyzer';
 
-// Get environment variables with debug logging
-const API_URL = process.env.REACT_APP_API_URL || 'https://password-strength-analyzer-backend-production.up.railway.app';
-console.log('Environment Variables:', {
-  REACT_APP_API_URL: process.env.REACT_APP_API_URL,
-  NODE_ENV: process.env.NODE_ENV,
-  API_URL
-});
+// API URL configuration
+const API_URL = 'https://password-strength-analyzer-backend-production.up.railway.app';
+console.log('Using API URL:', API_URL);
 
 function App() {
   // User and authentication state

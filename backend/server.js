@@ -26,7 +26,7 @@ app.use((req, res, next) => {
 });
 
 // CORS configuration
-const allowedOrigins = ['https://password-strength-analyzer-frontend.vercel.app', 'https://www.passwordstrengthanalyser.com', 'http://localhost:3000'];
+const allowedOrigins = ['https://www.passwordstrengthanalyser.com', 'http://localhost:3000'];
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
