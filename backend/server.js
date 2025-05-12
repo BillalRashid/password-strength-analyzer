@@ -33,11 +33,8 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ Handle OPTIONS preflight requests globally
-app.options('*', cors());
-
-// ✅ Set CORS headers for all responses
-app.use((req, res, next) => {
+// ✅ Preflight handler with origin check
+app.options('*', (req, res) => {
   const origin = req.headers.origin;
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
@@ -45,7 +42,7 @@ app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
-  next();
+  return res.sendStatus(204);
 });
 
 // === Logging ===
@@ -70,7 +67,7 @@ app.use(session({
   }
 }));
 
-// === MongoDB ===
+// === MongoDB Connection ===
 const connectWithRetry = async () => {
   try {
     console.log('Connecting to MongoDB...');
