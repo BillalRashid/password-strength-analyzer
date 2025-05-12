@@ -43,7 +43,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Preflight handling
 app.options('*', cors());
 
 // Middleware
@@ -58,7 +57,7 @@ app.use(session({
     secure: process.env.NODE_ENV === 'production',
     httpOnly: true,
     sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-    maxAge: 86400000 // 1 day
+    maxAge: 86400000
   }
 }));
 
@@ -190,6 +189,15 @@ app.get('/health', (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     mongo: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+  });
+});
+
+// ✅ Root route added here
+app.get('/', (req, res) => {
+  res.json({
+    message: 'Password Strength Analyzer API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
   });
 });
 
