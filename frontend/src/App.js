@@ -24,7 +24,6 @@ function App() {
         setIsLoading(true);
         console.log('Google login success:', codeResponse);
 
-        // Fetch Google user info
         const userInfo = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: {
             Authorization: `Bearer ${codeResponse.access_token}`
@@ -33,12 +32,14 @@ function App() {
 
         console.log('Google user info:', userInfo.data);
 
-        // Send to backend
         const backendRes = await axios.post(`${API_URL}/auth/google/token`, {
           access_token: codeResponse.access_token,
           user_info: userInfo.data
         }, {
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
           withCredentials: true
         });
 
@@ -78,7 +79,8 @@ function App() {
         const res = await axios.get(`${API_URL}/auth/verify`, {
           headers: {
             Authorization: `Bearer ${stored}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
           },
           withCredentials: true
         });
