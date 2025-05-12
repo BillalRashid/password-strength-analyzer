@@ -13,7 +13,6 @@ const app = express();
 process.on('uncaughtException', (err) => {
   console.error('Uncaught Exception:', err);
 });
-
 process.on('unhandledRejection', (err) => {
   console.error('Unhandled Rejection:', err);
 });
@@ -24,10 +23,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// CORS configuration
+// ✅ CORS configuration
 const allowedOrigins = [
   'https://passwordstrengthanalyser.com',
-  'https://www.passwordstrengthanalyser.com'
+  'https://www.passwordstrengthanalyser.com',
+  'http://localhost:3000'
 ];
 
 app.use(cors({
@@ -43,12 +43,21 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-app.options('*', cors());
+// ✅ Preflight handler with headers
+app.options('*', (req, res) => {
+  res.set({
+    'Access-Control-Allow-Origin': req.headers.origin || '*',
+    'Access-Control-Allow-Credentials': 'true',
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+  });
+  res.sendStatus(204);
+});
 
 // Middleware
 app.use(express.json());
 
-// Secure session config
+// Session config
 app.use(session({
   secret: process.env.SESSION_SECRET || 'fallback-secret',
   resave: false,
@@ -61,7 +70,7 @@ app.use(session({
   }
 }));
 
-// Connect to MongoDB
+// MongoDB connection
 const connectWithRetry = async () => {
   try {
     console.log('Connecting to MongoDB...');
@@ -75,7 +84,6 @@ const connectWithRetry = async () => {
     setTimeout(connectWithRetry, 5000);
   }
 };
-
 connectWithRetry();
 
 // JWT middleware
@@ -96,11 +104,13 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-// Google login handler
+// Google login
 app.post('/auth/google/token', async (req, res) => {
   try {
     const { access_token, user_info } = req.body;
-    if (!access_token || !user_info) return res.status(400).json({ error: 'Missing token or user info' });
+    if (!access_token || !user_info) {
+      return res.status(400).json({ error: 'Missing token or user info' });
+    }
 
     let user = await User.findOne({ googleId: user_info.sub });
     if (!user) {
@@ -192,7 +202,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// ✅ Root route added here
+// Root route
 app.get('/', (req, res) => {
   res.json({
     message: 'Password Strength Analyzer API is running',
@@ -201,7 +211,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// Global error handler
+// Error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal Server Error' });
