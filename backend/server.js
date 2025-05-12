@@ -17,7 +17,8 @@ process.on('unhandledRejection', (err) => console.error('Unhandled Rejection:', 
 const allowedOrigins = [
   'https://passwordstrengthanalyser.com',
   'https://www.passwordstrengthanalyser.com',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'https://password-strength-analyzer-frontend-production.up.railway.app' // ✅ Add your frontend Railway URL
 ];
 
 app.use((req, res, next) => {
