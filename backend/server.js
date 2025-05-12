@@ -9,21 +9,11 @@ const User = require('./models/User');
 
 const app = express();
 
-// Global error handlers
-process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
-});
-process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Rejection:', err);
-});
+// === Global Error Handlers ===
+process.on('uncaughtException', (err) => console.error('Uncaught Exception:', err));
+process.on('unhandledRejection', (err) => console.error('Unhandled Rejection:', err));
 
-// Debug logger
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  next();
-});
-
-// ✅ CORS configuration
+// === CORS Setup ===
 const allowedOrigins = [
   'https://passwordstrengthanalyser.com',
   'https://www.passwordstrengthanalyser.com',
@@ -31,7 +21,7 @@ const allowedOrigins = [
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
+  origin: (origin, callback) => {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -43,21 +33,19 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ Preflight handler with headers
-app.options('*', (req, res) => {
-  res.set({
-    'Access-Control-Allow-Origin': req.headers.origin || '*',
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
-  });
-  res.sendStatus(204);
+// Handle OPTIONS preflight requests globally
+app.options('*', cors());
+
+// === Logging ===
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  next();
 });
 
-// Middleware
+// === Body Parser ===
 app.use(express.json());
 
-// Session config
+// === Session Setup ===
 app.use(session({
   secret: process.env.SESSION_SECRET || 'fallback-secret',
   resave: false,
@@ -70,7 +58,7 @@ app.use(session({
   }
 }));
 
-// MongoDB connection
+// === MongoDB ===
 const connectWithRetry = async () => {
   try {
     console.log('Connecting to MongoDB...');
@@ -86,7 +74,7 @@ const connectWithRetry = async () => {
 };
 connectWithRetry();
 
-// JWT middleware
+// === Middleware to Verify JWT ===
 const verifyToken = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -104,7 +92,7 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-// Google login
+// === Google Auth Endpoint ===
 app.post('/auth/google/token', async (req, res) => {
   try {
     const { access_token, user_info } = req.body;
@@ -134,7 +122,7 @@ app.post('/auth/google/token', async (req, res) => {
   }
 });
 
-// Token verification
+// === Verify Token Endpoint ===
 app.get('/auth/verify', verifyToken, (req, res) => {
   res.json({
     id: req.user._id,
@@ -143,7 +131,7 @@ app.get('/auth/verify', verifyToken, (req, res) => {
   });
 });
 
-// Password analysis
+// === Password Analysis ===
 app.post('/analyze-password', verifyToken, async (req, res) => {
   try {
     const { password } = req.body;
@@ -193,7 +181,7 @@ app.post('/analyze-password', verifyToken, async (req, res) => {
   }
 });
 
-// Health check
+// === Health Check ===
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
@@ -202,7 +190,7 @@ app.get('/health', (req, res) => {
   });
 });
 
-// Root route
+// === Root Route ===
 app.get('/', (req, res) => {
   res.json({
     message: 'Password Strength Analyzer API is running',
@@ -211,14 +199,14 @@ app.get('/', (req, res) => {
   });
 });
 
-// Error handler
+// === Fallback Error Handler ===
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// Start server
+// === Start Server ===
 const PORT = process.env.PORT || 5004;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT}`);
 });
