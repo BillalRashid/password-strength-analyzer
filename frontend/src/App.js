@@ -5,7 +5,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import PasswordAnalyzer from './components/PasswordAnalyzer';
 
-const API_URL = process.env.REACT_APP_API_URL?.trim();
+const API_URL = process.env.REACT_APP_API_URL?.trim() || 'API_URL_NOT_SET';
 console.log('Frontend Env Check:', {
   REACT_APP_API_URL: process.env.REACT_APP_API_URL,
   NODE_ENV: process.env.NODE_ENV,
@@ -22,7 +22,7 @@ function App() {
     onSuccess: async (codeResponse) => {
       try {
         setIsLoading(true);
-        console.log('Google login success:', codeResponse);
+        console.log('✅ Google login success:', codeResponse);
 
         const userInfo = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
           headers: {
@@ -30,7 +30,7 @@ function App() {
           }
         });
 
-        console.log('Google user info:', userInfo.data);
+        console.log('✅ Google user info:', userInfo.data);
 
         const backendRes = await axios.post(`${API_URL}/auth/google/token`, {
           access_token: codeResponse.access_token,
@@ -43,7 +43,7 @@ function App() {
           withCredentials: true
         });
 
-        console.log('Backend response:', backendRes.data);
+        console.log('✅ Backend response:', backendRes.data);
 
         if (backendRes.data?.token) {
           sessionStorage.setItem('auth_token', backendRes.data.token);
@@ -55,7 +55,7 @@ function App() {
         }
 
       } catch (err) {
-        console.error('Login error:', err.message || err);
+        console.error('❌ Login error:', err.response?.data || err.message || err);
         setAuthError('Login failed. Please try again.');
         setUser(null);
         setToken(null);
@@ -65,7 +65,7 @@ function App() {
       }
     },
     onError: (err) => {
-      console.error('Google login error:', err);
+      console.error('❌ Google login error:', err);
       setAuthError('Google login failed. Please try again.');
     }
   });
@@ -85,12 +85,12 @@ function App() {
           withCredentials: true
         });
 
-        console.log('Token verified:', res.data);
+        console.log('✅ Token verified:', res.data);
         setUser(res.data);
         setToken(stored);
         setAuthError(null);
       } catch (err) {
-        console.error('Token verification failed:', err);
+        console.error('❌ Token verification failed:', err.response?.data || err.message);
         sessionStorage.removeItem('auth_token');
         setToken(null);
         setUser(null);
