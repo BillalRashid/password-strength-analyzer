@@ -33,15 +33,19 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ Preflight handler with manual headers
-app.options('*', (req, res) => {
-  res.set({
-    'Access-Control-Allow-Origin': req.headers.origin || '*',
-    'Access-Control-Allow-Credentials': 'true',
-    'Access-Control-Allow-Methods': 'GET,POST,PUT,DELETE,OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
-  });
-  res.sendStatus(204);
+// ✅ Handle OPTIONS preflight requests globally
+app.options('*', cors());
+
+// ✅ Set CORS headers for all responses
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  }
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  next();
 });
 
 // === Logging ===
@@ -82,7 +86,7 @@ const connectWithRetry = async () => {
 };
 connectWithRetry();
 
-// === Middleware to Verify JWT ===
+// === JWT Middleware ===
 const verifyToken = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -100,7 +104,7 @@ const verifyToken = async (req, res, next) => {
   }
 };
 
-// === Google Auth Endpoint ===
+// === Google Auth ===
 app.post('/auth/google/token', async (req, res) => {
   try {
     const { access_token, user_info } = req.body;
@@ -130,7 +134,7 @@ app.post('/auth/google/token', async (req, res) => {
   }
 });
 
-// === Verify Token Endpoint ===
+// === Verify Token ===
 app.get('/auth/verify', verifyToken, (req, res) => {
   res.json({
     id: req.user._id,
@@ -207,7 +211,7 @@ app.get('/', (req, res) => {
   });
 });
 
-// === Fallback Error Handler ===
+// === Global Error Handler ===
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
   res.status(500).json({ error: 'Internal Server Error' });
